@@ -9,12 +9,14 @@ Author:
 
 Usage:
   cryptogram.py <cyphertext>...
+  cryptogram.py -i <cyphertext>...
   cryptogram.py (-h | --help)
   cryptogram.py --version
 
 Options:
   -h --help     Show this screen.
   --version     Show version.
+  -i            Ignore spaces. Use this when spaces are not provided between words.
 
 Additional features to implement: 
     Look for prefixes
@@ -46,12 +48,8 @@ DATE='2014-05-06'
 NAME='Cryptogram'
 
 def main(args):
-    # BUILD CYPHERTEXT
-    cyphertext = ""
-    for cypher in args['<cyphertext>']:
-        cypher = cypher.upper()
-        cyphertext += cypher
-    print("")
+    # BUILD & PRINT CYPHERTEXT
+    cyphertext = build_cyphertext(args)
     prettyprint_text('INPUT TEXT', cyphertext)
 
     # COUNTS
@@ -61,6 +59,7 @@ def main(args):
     # DOUBLES
     highlight_doubles(cyphertext)
     return
+
 
 def highlight_doubles(text):
     print("== DOUBLES ==")
@@ -89,17 +88,19 @@ def prettyprint_counts(counts):
         if ii !=0 and ii%10 == 0:
             print("")
         print("  %1s:%3d"%(key, value), sep='', end=''),
-    print("\nThe most common English letters are {e, t, s, d, n, r, y}",'\n')
+    print("\nThe most common English letters are {e, t, a, o, i, n, s, h} in that order",'\n')
     return
 
+
 def prettyprint_text(title, text):
-    print("== %s =="%title)
+    print("\n== %s =="%title)
     for ii,c in enumerate(text):
         if ii !=0 and ii%80 == 0:
             print("")
         print(c, sep='', end='')
     print("\n")
     return
+
 
 def count_chars(cyphertext):
     counts = {}
@@ -112,6 +113,35 @@ def count_chars(cyphertext):
         else:
             counts[c] += 1
     return counts
+
+
+def build_cyphertext(args):
+    input_text = ""
+    cyphertext = ""
+    for cypher in args['<cyphertext>']:
+        cypher = cypher.upper()
+        if args['-i']: # remove spaces
+            input_text += cypher
+        else: # preserve spaces
+            input_text += ' %s'%cypher
+    for c in input_text:
+        if c in string.uppercase:
+            cyphertext += c
+            args['has_letters'] = True
+        elif c in string.whitespace and not args['-i']:
+            cyphertext += c
+            args['has_whitespace'] = True
+        elif c in string.punctuation:
+            cyphertext += c
+            args['has_punctuation'] = True
+        elif c in string.digits:
+            cyphertext += c
+            args['has_digits'] = True
+        else:
+            # ignore non printable characters
+            continue
+    return cyphertext
+
 
 if __name__ == '__main__':
     args = docopt(__doc__, version='%s %s:%s'%(NAME, VERSION, DATE))
