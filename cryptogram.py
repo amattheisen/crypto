@@ -29,6 +29,8 @@ Additional features to implement:
       1 letter words
       double vowels are usually {ee, aa}
       the most common vowell is 'e' and the least common is 'u'
+    Look for words
+      Use words file. Difficult to do if spaces are not provided. Algorithm needed
 
 cyphertext of interest: 
   tpfccdlfdtte pcaccplircdt dklpcfrp?qeiq lhpqlipqeodf gpwafopwprti izxndkiqpkii krirrifcapnc dxkdciqcafmd vkfpcadf.
