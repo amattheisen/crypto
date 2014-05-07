@@ -52,16 +52,61 @@ def main(args):
     cyphertext = build_cyphertext(args)
     prettyprint_text('INPUT TEXT', cyphertext)
 
-    # COUNTS
+    # CHARACTER COUNTS
     cypher_char_counts = count_chars(cyphertext)
-    prettyprint_counts(cypher_char_counts)
+    prettyprint_counts('CHARACTER', cypher_char_counts)
 
     # DOUBLES
     highlight_doubles(cyphertext)
+
+    # CHARACTER SEQUENCES
+    sequence_counts = count_sequences(cyphertext)
+    prettyprint_counts('SEQUENCE', sequence_counts)
+
     return
 
 
+def count_sequences(text):
+    ''' Count recurring sequences of characters '''
+    counts = {}
+    last_c = ""
+    second_last_c = ""
+    for c in text:
+        sequence2chars = last_c + c
+        sequence3chars = second_last_c + last_c + c
+        # check if sequence2chars contains punctuation or space
+        sequence2chars_valid = True
+        for char in sequence2chars:
+            if char not in string.letters and char not in string.digits:
+                sequence2chars_valid = False
+                break
+        # check if sequence3chars contains punctuation or space
+        sequence3chars_valid = True
+        for char in sequence3chars:
+            if char not in string.letters and char not in string.digits:
+                sequence3chars_valid = False
+                break
+        if sequence2chars_valid:
+            if sequence2chars not in counts.keys():
+                counts[sequence2chars] = 1
+            else:
+                counts[sequence2chars] += 1
+        if sequence3chars_valid:
+            if sequence3chars not in counts.keys():
+                counts[sequence3chars] = 1
+            else:
+                counts[sequence3chars] += 1
+        second_last_c = last_c
+        last_c = c
+    # remove all counts that only occured once
+    for key, value in counts.items():
+        if value == 1:
+            del counts[key]
+    return counts
+
+
 def highlight_doubles(text):
+    ''' Show where doubles occur in text '''
     print("== DOUBLES ==")
     last_c = ""
     doubles = ""
@@ -81,14 +126,18 @@ def highlight_doubles(text):
     return
     
 
-def prettyprint_counts(counts):
-    print("== COUNTS ==")
+def prettyprint_counts(title, counts):
+    ''' print counts with formatting '''
+    print("== %s COUNTS =="%title)
     sorted_keys = sorted(counts.iteritems(), key=lambda (k,v): (v,k), reverse=True)
     for ii,(key,value) in enumerate(sorted_keys):
         if ii !=0 and ii%10 == 0:
             print("")
-        print("  %1s:%3d"%(key, value), sep='', end=''),
-    print("\nThe most common English letters are {e, t, a, o, i, n, s, h} in that order",'\n')
+        print("%4s:%3d"%(key, value), sep='', end=''),
+    if title == 'CHARACTER':
+        print("\nThe most common English letters are {e, t, a, o, i, n, s, h} in that order",'\n')
+    if title == 'SEQUENCE':
+        print("") # TODO: Are there a list of most common sequences?
     return
 
 
