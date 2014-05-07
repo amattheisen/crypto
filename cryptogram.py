@@ -29,8 +29,13 @@ Additional features to implement:
       1 letter words
       double vowels are usually {ee, aa}
       the most common vowell is 'e' and the least common is 'u'
-    Look for words
+    Look for trigrams
+      http://en.wikipedia.org/wiki/Trigram#cite_note-1
+    Look for words / Autosolve
       Use words file. Difficult to do if spaces are not provided. Algorithm needed
+      Bruit force - look through 26! possibilities of letter maps
+        and count #words in solution.  display solutions containing the most words
+      
 
 cyphertext of interest: 
   tpfccdlfdtte pcaccplircdt dklpcfrp?qeiq lhpqlipqeodf gpwafopwprti izxndkiqpkii krirrifcapnc dxkdciqcafmd vkfpcadf.
@@ -40,7 +45,9 @@ cyphertext source:
     
 source of strategies: 
   http://www.bigfishgames.com/blog/cryptogram-tips-tricks-and-strategies/
-
+  http://www.gtoal.com/wordgames/cryptograms.html
+  http://www.muth.org/Robert/Cipher/substitution/
+  http://www.quipqiup.com/howwork.php
 """
 from __future__ import print_function
 from docopt import docopt
