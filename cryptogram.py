@@ -8,6 +8,8 @@ Author:
   Andrew Mattheisen
 
 Usage:
+  cryptogram.py analyze <cyphertext>...
+  cryptogram.py analyze -i <cyphertext>...
   cryptogram.py <cyphertext>...
   cryptogram.py -i <cyphertext>...
   cryptogram.py (-h | --help)
@@ -18,6 +20,9 @@ Options:
   --version     Show version.
   -i            Ignore spaces. Use this when spaces are not provided between words.
 
+"""
+from __future__ import print_function
+"""
 Additional features to implement: 
     Look for prefixes
       {ex-, over-, un-, or up-}
@@ -25,10 +30,12 @@ Additional features to implement:
       {-ed, -er, -man or -men, or -ful}
     Look for 1 letter words (If spaces are provided)
       These are most likely {I, a}
-    Identify the vowels
+    Identify the vowels - use sukhotin's Method
       1 letter words
       double vowels are usually {ee, aa}
       the most common vowell is 'e' and the least common is 'u'
+      
+    Look for digraphs
     Look for trigrams
       http://en.wikipedia.org/wiki/Trigram#cite_note-1
     Look for words / Autosolve
@@ -49,7 +56,6 @@ source of strategies:
   http://www.muth.org/Robert/Cipher/substitution/
   http://www.quipqiup.com/howwork.php
 """
-from __future__ import print_function
 from docopt import docopt
 import string
 VERSION='1.0'
@@ -72,6 +78,72 @@ def main(args):
     sequence_counts = count_sequences(cyphertext)
     prettyprint_counts('SEQUENCE', sequence_counts)
 
+    # IDENTIFY POTENTIAL VOWELLS
+    sukhotin(cyphertext)
+
+    return
+
+def sukhotin(text):
+    freq = [ [ 0 for ii in range(26) ] for jj in range(26) ]
+    for letter in string.uppercase:
+        c = "@"
+        last_c = "@"
+        for next_c in text+"@":
+            if c == letter:
+                #print("DEBUG: ", "last_c=%s, "%last_c, "c=%s, "%c, "next_c=%s."%next_c)
+                if last_c in string.uppercase:
+                    freq[(ord(c)-65)][(ord(last_c)-65)] += 1
+                    freq[(ord(last_c)-65)][(ord(c)-65)] += 1
+                if next_c in string.uppercase:
+                    freq[(ord(c)-65)][(ord(next_c)-65)] += 1
+                    freq[(ord(next_c)-65)][(ord(c)-65)] += 1
+            last_c = c
+            c = next_c
+    # zero diagonal
+    for ii in range(26):
+        freq[ii][ii] = 0
+
+    # Determine SUMS:
+    sums = [0 for ii in range(26)]
+    letter_types = ["C" for ii in range(26)]
+    for ii in range(26):
+        sums[ii] = sum(freq[ii])
+
+    # Identify Vowells 
+    vowels = []
+    for round_num in range(1,6):
+        if round_num > 1:
+            # reduce sums for letters connected to last round's winner
+            for ii in range(26):
+                sums[ii] -= freq[ii][ord(max_letter)-65]*2
+        # get max sum
+        max_sum = 0
+        for ii in range(26):
+            if letter_types[ii] == "C" and sums[ii] > max_sum:
+                max_sum = sums[ii]
+        # get letter
+        max_letters = [chr(ii+65) for ii,value in enumerate(sums) if (
+          value == max_sum and letter_types[ii] == "C")]
+        max_letter = max_letters[0] # pick lowest letter if there is a tie
+        letter_types[ord(max_letter)-65] = "V"
+        # debugging
+        #print_sukhotin_state_debug(freq, sums, letter_types)
+        vowels.append(max_letter)
+    print ("\n== SUKHOTIN ==")
+    print("Vowell(s) in order of confidence are ", vowels)
+    return 
+
+def print_sukhotin_state_debug(freq, sums, letter_types):
+    print ("== SUKHOTIN ==")
+    print ("    ", end="")
+    for letter in string.uppercase:
+        print("%3s"%letter, end = "")
+    print("  SUM  C/V")
+    for ii,letter in enumerate(string.uppercase):
+        print("%3s  "%letter, end = "")
+        for value in freq[ii]:
+            print("%2d "%value, end="")
+        print(" %3d   "%sums[ii], "%s"%letter_types[ii])
     return
 
 
@@ -203,4 +275,5 @@ def build_cyphertext(args):
 
 if __name__ == '__main__':
     args = docopt(__doc__, version='%s %s:%s'%(NAME, VERSION, DATE))
+    print(args)
     main(args)
