@@ -10,6 +10,8 @@ Author:
 Usage:
   cryptogram.py analyze <cyphertext>...
   cryptogram.py analyze -i <cyphertext>...
+  cryptogram.py sub -f <file> <cyphertext>...
+  cryptogram.py sub -i -f <file> <cyphertext>...
   cryptogram.py <cyphertext>...
   cryptogram.py -i <cyphertext>...
   cryptogram.py (-h | --help)
@@ -58,11 +60,59 @@ source of strategies:
 """
 from docopt import docopt
 import string
+from termcolor import colored
+import re
+
 VERSION='1.0'
 DATE='2014-05-06'
 NAME='Cryptogram'
 
-def main(args):
+
+
+def substitute(args):
+    """This Function prints the result of a requested substitution
+    
+    In the substitution,  
+        Uppercase blue is CLEARTEXT, 
+        lowercase green is CYPHERTEXT """
+    # BUILD & PRINT CYPHERTEXT
+    cyphertext = build_cyphertext(args)
+    prettyprint_text('INPUT TEXT', cyphertext)
+
+    filename = args['<file>']
+    decodes = read_guess_file(filename)
+
+    # PERFORM SUBSTITUTION
+    print("")
+    for c in cyphertext:
+        if c in decodes.keys():
+            print(colored(decodes[c], 'blue', attrs=['bold']), end="")
+        else:
+            if c in string.uppercase:
+                c = c.lower()
+            print(colored(c, 'green', attrs=['underline']), end="")
+    print("\n")
+
+    return
+
+
+def read_guess_file(filename):
+    """ This Function parses the guess file """
+    is_decode = re.compile("^\s*(?P<cypher>[a-zA-Z])\s*=\s*(?P<clear>[a-zA-Z])[\s$#]")
+    decodes = {}
+    fd = open(filename, 'r')
+    for line in fd:
+        m = is_decode.search(line)
+        if not m:
+            continue
+        #print(line, m.group('cypher'), m.group('clear'))
+        if m.group('cypher') in decodes.keys():
+            print("WARNING: Cypherchar \'%s\'"%m.group('cypher'), " specified multiple times in guess file - using last occurance.")
+        decodes[m.group('cypher')] = m.group('clear')
+    return decodes
+
+
+def analyze(args):
     # BUILD & PRINT CYPHERTEXT
     cyphertext = build_cyphertext(args)
     prettyprint_text('INPUT TEXT', cyphertext)
@@ -248,9 +298,9 @@ def count_chars(cyphertext):
 def build_cyphertext(args):
     input_text = ""
     cyphertext = ""
-    for cypher in args['<cyphertext>']:
+    for ii, cypher in enumerate(args['<cyphertext>']):
         cypher = cypher.upper()
-        if args['-i']: # remove spaces
+        if ii == 0 or args['-i']: # remove spaces
             input_text += cypher
         else: # preserve spaces
             input_text += ' %s'%cypher
@@ -275,5 +325,7 @@ def build_cyphertext(args):
 
 if __name__ == '__main__':
     args = docopt(__doc__, version='%s %s:%s'%(NAME, VERSION, DATE))
-    print(args)
-    main(args)
+    if args['sub']:
+        substitute(args)
+    else:
+        analyze(args)

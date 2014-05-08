@@ -1,0 +1,33 @@
+# Generic Guess File
+# Fill in known CYPHERTEXT/CLEARTEXT letters
+#CYPHERTEXT = CLEARTEXT [#COMMENTS HERE]
+
+
+A = I # Vowel?
+B = 
+C = T # DOUBLE, FREQUENT
+D = O # Vowel?, FREQUENT
+E = H  # Vowel?
+F = N # FREQUENT
+G = 
+H = 
+I = O  # Vowel? DOUBLE, FREQUENT {O}?
+J = 
+K = R
+L = K
+M = 
+N = 
+O = 
+P = A # Vowel?, FREQUENT !{I,O}
+Q =   # not vowel
+R = S # DOUBLE
+S = 
+T = W # DOUBLE, not vowel
+U = 
+V = 
+W = 
+X = 
+Y = 
+Z = 
+
+# It does not begin with 'shall'
