@@ -11,7 +11,7 @@ Description:
 
   The suite of ROTx (Caesarian) cyphers is the subset of Affine cyphers where 
   A = 1.  If keys A and B are not specified, this script performs the Caesarian
-  operation.
+  (ROT13) operation.
 
 Author: 
   Andrew Mattheisen
