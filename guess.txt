@@ -1,33 +1,36 @@
 # Generic Guess File
 # Fill in known CYPHERTEXT/CLEARTEXT letters
+#
+# cyphertext is tpfccdlfdtte pcaccplircdt dklpcfrp?qeiq lhpqlipqeodf gpwafopwprti izxndkiqpkii krirrifcapnc dxkdciqcafmd vkfpcadf.
+#
+
+
+
 #CYPHERTEXT = CLEARTEXT [#COMMENTS HERE]
-
-
 A = I # Vowel?
 B = 
 C = T # DOUBLE, FREQUENT
 D = O # Vowel?, FREQUENT
 E = H  # Vowel?
 F = N # FREQUENT
-G = 
-H = 
-I = O  # Vowel? DOUBLE, FREQUENT {O}?
+G = D
+H = B
+I = E  # Vowel? DOUBLE, FREQUENT {O}?
 J = 
 K = R
 L = K
-M = 
-N = 
-O = 
+M = G
+N = L
+O = M
 P = A # Vowel?, FREQUENT !{I,O}
-Q =   # not vowel
+Q = C # not vowel
 R = S # DOUBLE
 S = 
 T = W # DOUBLE, not vowel
 U = 
-V = 
-W = 
-X = 
+V = U
+W = Y
+X = P
 Y = 
-Z = 
+Z = X
 
-# It does not begin with 'shall'
