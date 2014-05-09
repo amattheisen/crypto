@@ -26,31 +26,21 @@ Options:
 from __future__ import print_function
 """
 Additional features to implement: 
-    Look for prefixes
-      {ex-, over-, un-, or up-}
-    Look for suffexes
-      {-ed, -er, -man or -men, or -ful}
-    Look for 1 letter words (If spaces are provided)
-      These are most likely {I, a}
-    Identify the vowels - use sukhotin's Method
-      1 letter words
-      double vowels are usually {ee, aa}
-      the most common vowell is 'e' and the least common is 'u'
+    IMPLEMENT WORD BOUNDARY ANALYSIS
+        Look for words / Autosolve
+          Create a map of word character patterns: e.g. workout = ABCDAFG
+          Use words file. Algorithm: apply letter maps, count #words in solution.
+          Display the solutions containing the most words
+        Look for prefixes
+          {ex-, over-, un-, or up-}
+        Look for suffexes
+          {-ed, -er, -man or -men, or -ful}
+        Look for 1 letter words (If spaces are provided)
+          These are most likely {I, a}
+    Many sentences with a ? begin with a 'w' {who, what, when, where, why}
       
-    Look for digraphs
-    Look for trigrams
-      http://en.wikipedia.org/wiki/Trigram#cite_note-1
-    Look for words / Autosolve
-      Use words file. Difficult to do if spaces are not provided. Algorithm needed
-      Bruit force - look through 26! possibilities of letter maps
-        and count #words in solution.  display solutions containing the most words
-      
-
-cyphertext of interest: 
+cyphertext of interest from https://twitter.com/NSACareers/status/463321993878994945
   tpfccdlfdtte pcaccplircdt dklpcfrp?qeiq lhpqlipqeodf gpwafopwprti izxndkiqpkii krirrifcapnc dxkdciqcafmd vkfpcadf.
-
-cyphertext source: 
-  tweet from NSA https://twitter.com/NSACareers/status/463321993878994945
     
 source of strategies: 
   http://www.bigfishgames.com/blog/cryptogram-tips-tricks-and-strategies/
@@ -63,8 +53,8 @@ import string
 from termcolor import colored
 import re
 
-VERSION='1.0'
-DATE='2014-05-06'
+VERSION='1.1'
+DATE='2014-05-09'
 NAME='Cryptogram'
 
 
