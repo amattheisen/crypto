@@ -21,6 +21,7 @@ Options:
   -h --help     Show this screen.
   --version     Show version.
   -i            Ignore spaces. Use this when spaces are not provided between words.
+  -f <file>     File containing guess mapping of cypherchar to plainchar.
 
 """
 from __future__ import print_function
@@ -50,7 +51,7 @@ source of strategies:
 """
 from docopt import docopt
 import string
-from termcolor import colored
+from termcolor import colored, cprint
 import re
 
 VERSION='1.1'
@@ -69,18 +70,18 @@ def substitute(args):
     cyphertext = build_cyphertext(args)
     prettyprint_text('INPUT TEXT', cyphertext)
 
-    filename = args['<file>']
+    filename = args['-f']
     decodes = read_guess_file(filename)
 
     # PERFORM SUBSTITUTION
     print("")
     for c in cyphertext:
         if c in decodes.keys():
-            print(colored(decodes[c], 'blue', attrs=['bold']), end="")
+            cprint(decodes[c], 'blue', attrs=['bold'], end="")
         else:
             if c in string.uppercase:
                 c = c.lower()
-            print(colored(c, 'green', attrs=['underline']), end="")
+            cprint(c, 'green', 'on_grey', attrs=['underline'], end="")
     print("\n")
 
     return
