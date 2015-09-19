@@ -1,3 +1,14 @@
+#!/usr/bin/env python2
+'''frequencies.py letter frequency analysis & data
+
+Author: Andrew Mattheisen
+
+table data copied from "Secret History: The Story of Cryptography"
+
+'''
+from __future__ import print_function
+import json
+
 # Overall Frequency of letters (%)
 letter_freq = {
   "a" : 8.2, 
@@ -77,3 +88,193 @@ double_letter_freq = {
  "bb" :  0.25,
   }
 
+
+def write_pattern_file(patterns, filename):
+    '''Write patterns dictionary to json file.'''
+    with open(filename, 'w') as fdout:
+        json.dump(patterns, fdout)
+    return
+
+
+def read_pattern_file(filename):
+    '''Create patterns dictionary from json file.'''
+    with open(filename, 'r') as fdin:
+        patterns = json.load(fdin)
+    for pattern in patterns:
+        for position,word in enumerate(patterns[pattern]):
+            patterns[pattern][position] = str(word) # string please, no unicode
+    return patterns
+
+
+def create_word_patterns(word_list_filename, verbose=False):
+    '''Create a dictionary of word patterns from a word file.'''
+    letters = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n',
+      'o','p','q','r','s','t','u','v','w','x','y','z'] 
+    with open(word_list_filename, 'r') as fd:
+        patterns = {}
+        for line in fd:
+            word = line.strip().lower()
+            if word[0] in letters:
+                letters.remove(word[0])
+                if verbose:
+                    print("update: found first word starting with %s" % word[0])
+            pattern = determine_pattern(word)
+            if not pattern in patterns.keys():
+                patterns[pattern] = []
+            if not word in patterns[pattern]:
+                patterns[pattern].append(word)
+    return patterns
+
+
+def determine_pattern(word):
+    '''Determine the pattern for a word.'''
+    # ASSUME: no more than 26 unique chars in a word
+    PATTERN_CHARS = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N',
+      'O','P','Q','R','S','T','U','V','W','X','Y','Z'] 
+    # ASSUME: no distinction between uppercase and lowercase
+    word = word.lower()
+    # determine chars in word
+    chars = []
+    for char in word:
+        if not char.lower() in chars:
+            chars.append(char)
+    # create pattern
+    pattern = word
+    for char_index, char in enumerate(chars):
+        pattern = pattern.replace(char,PATTERN_CHARS[char_index])
+    return pattern    
+
+
+def get_words_for_pattern(pattern, patterns):
+    '''retieve all words matching pattern from patterns.'''
+    words = []
+    for word in patterns[pattern]:
+        words.append(word)
+    return words
+
+
+# =============================================================================
+# TESTS
+# =============================================================================
+def test_determine_pattern():
+    '''Test function determine_pattern().'''
+    test_pattern = determine_pattern("AarDvarK")
+    if test_pattern == "AABCDABE":
+        return True # passed
+    return False # failed
+
+
+def test_create_word_patterns_list():
+    '''Test function create_word_patterns().'''
+    test_list = {
+      "A"        : ['i', 'a'],
+      "ABBCD"    : ['apple'],
+      "ABB"      : ['add'],
+      "ABC"      : ['the', 'why', 'car', 'bin', 'and', 'can', 'eat'],
+      "ABCDAE"   : ['taiste'],
+      "ABCCBCCB" : ['bannanna'],
+      "ABCDA"    : ['going'],
+      "ABCDC"    : ['these'],
+      "ABCDE"    : ['thine', 'fruit'],
+      "ABCDD"    : ['three'],
+      "ABCD"     : ['more'],
+      "ABCCA"    : ['yummy'],
+      "AB"       : ['am', 'do', 'to', 'go'],
+      "ABCCAD"   : ['little'],
+      "ABCDEF"   : ['fruity', 'fruits'],
+      }
+    pattern_list = create_word_patterns("test_word_list.txt")
+    for pattern in pattern_list:
+        if not pattern in test_list.keys():
+            print("pattern %s not found" % pattern)
+            return False # failed
+        for word in pattern_list[pattern]:
+            if not word in test_list[pattern]:
+                print("word %s not found for pattern %s" % (word, pattern) )
+                return False # failed
+    return True
+
+
+def test_read_write():
+    '''Test function write_pattern_file() and read_pattern_file().'''
+    filename = "patterns_test_word_list.txt.json"
+    patterns = create_word_patterns("test_word_list.txt")
+    write_pattern_file(patterns, filename)
+    read_patterns = read_pattern_file(filename)
+    # compare read patterns to written ones
+    for pattern in read_patterns:
+        if not pattern in patterns:
+            print("pattern %s not found" % pattern)
+            return False # failed
+        for word in read_patterns[pattern]:
+            if not word in patterns[pattern]:
+                print("word %s not found for pattern %s" % (word, pattern) )
+                return False # failed
+    return True # passed
+
+
+def test_get_words_for_pattern():
+    '''Test function get_words_for_pattern().'''
+    pattern = "ABC"
+    expected_words = ['the', 'why', 'car', 'bin', 'and', 'can', 'eat']
+    patterns = create_word_patterns("test_word_list.txt")
+    words = get_words_for_pattern(pattern, patterns)
+    for word in expected_words:
+        if not word in words:
+            print("Error: missing word %s" %word)
+            return False # failed
+    return True # passed
+
+
+def run_tests():
+    '''Run all tests for this file.'''
+    results = []
+    results.append("passed" if test_determine_pattern() else "failed")
+    print("Test determine_pattern: ", results[-1])
+
+    results.append("passed" if test_create_word_patterns_list() else "failed")
+    print("Test create_word_patterns: ", results[-1])
+
+    results.append("passed" if test_read_write() else "failed")
+    print("Test read_pattern_file and write_pattern_file: ", results[-1])
+
+    results.append("passed" if test_get_words_for_pattern() else "failed")
+    print("Test get_words_for_pattern: ", results[-1])
+
+    for result in results:
+        if result != "passed":
+            return False # failed one or more tests
+    return True # passed all tests
+
+
+def create_english_word_patterns():
+    '''Create patterns from the built in word list'''
+    out_filename = "word_patterns.json"
+    patterns = create_word_patterns("words", True)
+    write_pattern_file(patterns, out_filename)
+    return
+
+
+def get_english_words_for_pattern(pattern, verbose = False):
+    '''Get a list of words matching pattern.'''
+    patterns = read_pattern_file("word_patterns.json")
+    words = get_words_for_pattern(pattern, patterns)
+    words.sort()
+    if verbose:
+        print("Get a list of words matching pattern %s." % pattern)
+    for counter,word in enumerate(words):
+        if counter >= 25:
+            print("%d more words not shown" % (len(words) - 25))
+            break # don't print too many words
+        print(word)
+    return
+
+
+if __name__ == "__main__":
+    result = run_tests()
+    if result:
+        print("All tests passed.")
+
+        #create_english_word_patterns()
+        #get_english_words_for_pattern("ABCCBD", True)
+    
