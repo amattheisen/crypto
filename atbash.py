@@ -20,14 +20,14 @@ Options:
 from __future__ import print_function
 from docopt import docopt
 import string
-VERSION='1.0'
-DATE='2014-05-08'
+VERSION='1.1'
+DATE='2015-09-19'
 TITLE='Altbash'
 
 
 def main(args):
     (cypher_text, clear_text) = altbash_encode(args['<cyphertext>'])
-    print("INPUT:  ", cypher_text)
+    print("INPUT:    ", cypher_text)
     print("ALTBASH:  ", clear_text)
     return
 
