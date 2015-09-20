@@ -118,7 +118,7 @@ def create_word_patterns(word_list_filename, verbose=False):
                 letters.remove(word[0])
                 if verbose:
                     print("update: found first word starting with %s" % word[0])
-            pattern = determine_pattern(word)
+            pattern = get_pattern(word)
             if not pattern in patterns.keys():
                 patterns[pattern] = []
             if not word in patterns[pattern]:
@@ -126,7 +126,7 @@ def create_word_patterns(word_list_filename, verbose=False):
     return patterns
 
 
-def determine_pattern(word):
+def get_pattern(word):
     '''Determine the pattern for a word.'''
     # ASSUME: no more than 26 unique chars in a word
     PATTERN_CHARS = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N',
@@ -145,20 +145,45 @@ def determine_pattern(word):
     return pattern    
 
 
-def get_words_for_pattern(pattern, patterns):
-    '''retieve all words matching pattern from patterns.'''
+def get_words_for_pattern(pattern, patterns=read_pattern_file("word_patterns.json")):
+    '''Retieve all words matching pattern from patterns.
+    The default patterns is all words in the english language'''
     words = []
     for word in patterns[pattern]:
         words.append(word)
+    words.sort()
     return words
+
+
+def filter_words(words, indexes, chars, verbose=False):
+    '''Filter word list to only words matching one or more known characters'''
+    # allow lazy users
+    if type(indexes) != type([]):
+        indexes = [indexes]
+    if type(chars) != type([]):
+        chars = [chars]
+    filtered_words = []
+    for word in words:
+        if word[indexes[0]] == chars[0]:
+            filtered_words.append(word)
+    if len(indexes) != 1:
+        # multi-character guess
+        for ii in range(1,len(indexes)):
+            for word in filtered_words:
+                if not word[indexes[ii]] == chars[ii]:
+                    filtered_words.remove(word)
+    if verbose:
+        print("wordlist reduced from %d to %d words" % (
+          len(words), len(filtered_words) ) )
+    return filtered_words
 
 
 # =============================================================================
 # TESTS
 # =============================================================================
-def test_determine_pattern():
-    '''Test function determine_pattern().'''
-    test_pattern = determine_pattern("AarDvarK")
+def test_get_pattern():
+    '''Test function get_pattern().'''
+    test_pattern = get_pattern("AarDvarK")
     if test_pattern == "AABCDABE":
         return True # passed
     return False # failed
@@ -215,6 +240,8 @@ def test_read_write():
 
 def test_get_words_for_pattern():
     '''Test function get_words_for_pattern().'''
+    result = True # start assuming test will pass
+    # test specifying patterns
     pattern = "ABC"
     expected_words = ['the', 'why', 'car', 'bin', 'and', 'can', 'eat']
     patterns = create_word_patterns("test_word_list.txt")
@@ -222,46 +249,72 @@ def test_get_words_for_pattern():
     for word in expected_words:
         if not word in words:
             print("Error: missing word %s" %word)
-            return False # failed
-    return True # passed
+            result = False # failed
+    # test without specifying patterns
+    pattern = "ABCDEFGHIDGB" 
+    expected_words = ["recapitulate", "semivolatile"]
+    words = get_words_for_pattern(pattern)
+    for word in expected_words:
+        if not word in words:
+            print("Error: missing word %s" %word)
+            result = False # failed
+    return result
+
+
+def test_refine_words():
+    '''Test function filter_words()'''
+    result = True # start assuming test will pass
+    words = ['pediatrics', 'pediculina', 'pedicurism', 'pedicurist']
+    # test with lists
+    chars = ['e', 'c']
+    indexes = [1, 4]
+    expected = ['pediculina', 'pedicurism', 'pedicurist']
+    filtered_words = filter_words(words, indexes, chars) 
+    if len(filtered_words) != len(expected):
+        result = False # failed - wrong number of words
+    for word in expected:
+        if not word in filtered_words:
+            result = False # failed - word missing
+    # test lazy user
+    chars = 'r'
+    indexes = 6
+    expected = ['pediatrics', 'pedicurism', 'pedicurist']
+    filtered_words = filter_words(words, indexes, chars) 
+    if len(filtered_words) != len(expected):
+        result = False # failed - wrong number of words
+    for word in expected:
+        if not word in filtered_words:
+            result = False # failed - word missing
+    return result
 
 
 def run_tests():
     '''Run all tests for this file.'''
-    results = []
-    results.append("passed" if test_determine_pattern() else "failed")
-    print("Test determine_pattern: ", results[-1])
+    result = "passed" # start assuming tests will pass
+    print("\n"+15*'=', "Testing module %s" % __file__, 15*'=')
+    tests = [
+      (test_get_pattern(),"Test get_pattern:"),
+      (test_create_word_patterns_list(), "Test create_word_patterns:"),
+      (test_read_write(), "Test read_pattern_file and write_pattern_file:"),
+      (test_get_words_for_pattern(), "Test get_words_for_pattern:"),
+      (test_refine_words(), "Test refine_words:")
+      ]
+    for test in tests:
+        result = "passed" if test[0] else "failed"
+        print("%-46s"%test[1], result)
 
-    results.append("passed" if test_create_word_patterns_list() else "failed")
-    print("Test create_word_patterns: ", results[-1])
-
-    results.append("passed" if test_read_write() else "failed")
-    print("Test read_pattern_file and write_pattern_file: ", results[-1])
-
-    results.append("passed" if test_get_words_for_pattern() else "failed")
-    print("Test get_words_for_pattern: ", results[-1])
-
-    for result in results:
-        if result != "passed":
-            return False # failed one or more tests
+    if result != "passed":
+        print(15*'=',"Result: One or more tests failed.", 15*'=')
+        return False # failed one or more tests
+    print(15*'=', "Result: All tests passed.", 15*'=')
     return True # passed all tests
 
 
-def create_english_word_patterns():
-    '''Create patterns from the built in word list'''
-    out_filename = "word_patterns.json"
-    patterns = create_word_patterns("words", True)
-    write_pattern_file(patterns, out_filename)
-    return
-
-
-def get_english_words_for_pattern(pattern, verbose = False):
-    '''Get a list of words matching pattern.'''
-    patterns = read_pattern_file("word_patterns.json")
-    words = get_words_for_pattern(pattern, patterns)
-    words.sort()
-    if verbose:
-        print("Get a list of words matching pattern %s." % pattern)
+# =============================================================================
+# Untested Functions
+# =============================================================================
+def print_words(words):    
+    '''Print up to 25 words from a list of words.'''
     for counter,word in enumerate(words):
         if counter >= 25:
             print("%d more words not shown" % (len(words) - 25))
@@ -272,9 +325,3 @@ def get_english_words_for_pattern(pattern, verbose = False):
 
 if __name__ == "__main__":
     result = run_tests()
-    if result:
-        print("All tests passed.")
-
-        #create_english_word_patterns()
-        #get_english_words_for_pattern("ABCCBD", True)
-    
