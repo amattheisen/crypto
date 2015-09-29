@@ -9,6 +9,8 @@ table data copied from "Secret History: The Story of Cryptography"
 from __future__ import print_function
 import json
 
+WORD_PATTERN_FILE = "word_patterns.json"
+
 # Overall Frequency of letters (%)
 letter_freq = {
   "a" : 8.2, 
@@ -96,7 +98,7 @@ def write_pattern_file(patterns, filename):
     return
 
 
-def read_pattern_file(filename):
+def read_pattern_file(filename=WORD_PATTERN_FILE):
     '''Create patterns dictionary from json file.'''
     with open(filename, 'r') as fdin:
         patterns = json.load(fdin)
@@ -114,6 +116,9 @@ def create_word_patterns(word_list_filename, verbose=False):
         patterns = {}
         for line in fd:
             word = line.strip().lower()
+            if word[-1] == "%":
+                # skip uncountable plurals
+                continue
             if word[0] in letters:
                 letters.remove(word[0])
                 if verbose:
@@ -145,7 +150,7 @@ def get_pattern(word):
     return pattern    
 
 
-def get_words_for_pattern(pattern, patterns=read_pattern_file("word_patterns.json")):
+def get_words_for_pattern(pattern, patterns=read_pattern_file(WORD_PATTERN_FILE)):
     '''Retieve all words matching pattern from patterns.
     The default patterns is all words in the english language'''
     words = []
@@ -252,7 +257,7 @@ def test_get_words_for_pattern():
             result = False # failed
     # test without specifying patterns
     pattern = "ABCDEFGHIDGB" 
-    expected_words = ["recapitulate", "semivolatile"]
+    expected_words = ["recapitulate"]
     words = get_words_for_pattern(pattern)
     for word in expected_words:
         if not word in words:
@@ -300,8 +305,10 @@ def run_tests():
       (test_refine_words(), "Test refine_words:")
       ]
     for test in tests:
-        result = "passed" if test[0] else "failed"
-        print("%-46s"%test[1], result)
+        this_result = "passed" if test[0] else "failed"
+        print("%-46s"%test[1], this_result)
+        if not test[0]: 
+            result = "failed"
 
     if result != "passed":
         print(15*'=',"Result: One or more tests failed.", 15*'=')
