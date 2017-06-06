@@ -29,6 +29,8 @@ INPUT_FILENAME_1_7 = "7.txt"
 OUTPUT_FILENAME_1_7 = "7_pt.txt"
 KNOWN_KEY_1_7 = "YELLOW SUBMARINE"
 
+INPUT_FILENAME_1_8 = "8.txt"
+
 
 def main(do_all=False):
     if do_all:
@@ -49,8 +51,10 @@ def main(do_all=False):
         assert hd == 37
         ###     The challenge itself
         break_repeating_key_xor(INPUT_FILENAME_1_6)
-    ##  challenge 7
-    decrypt_aes_128_ecb(INPUT_FILENAME_1_7, KNOWN_KEY_1_7, OUTPUT_FILENAME_1_7, verbose=True)
+        ##  challenge 7
+        decrypt_aes_128_ecb(INPUT_FILENAME_1_7, KNOWN_KEY_1_7, OUTPUT_FILENAME_1_7)
+        ## challenge 8
+        detect_aes_ecb(INPUT_FILENAME_1_8)
 
 
 def b64str_from_b16str(s, verbose=False):
@@ -286,6 +290,48 @@ def decrypt_aes_128_ecb(input_filename, known_key, output_filename, verbose=Fals
         print(plain_text[:100])
         print('...')
         print('see', output_filename)
+    return
+
+
+def detect_aes_ecb(filename, verbose=False):
+    """
+    Solve Cryptopals Set 1 challenge 8: Detect AES in ECB mode
+
+    Reference: http://cryptopals.com/sets/1/challenges/8
+
+    filename contains one line of cypher_text that's been encrypted with AES-128
+    in ECB mode.
+
+    This function finds that line relying on the following flaw in AES-128 in
+    ECB mode:
+        - if the plaintext contains the same 16 bytes multiple times, the 
+          cypher_text will also contain the same 16 bytes multiple times.
+
+    """
+    found = False
+    line_number = 1
+    with open(filename, 'r') as fd:
+        for line in fd:
+            line = line.strip()
+            b_line = list(bytes_from_hex_string(line))
+            # break up line into 16 byte chunks and detect repeating chunks
+            chunks = {}
+            for ii in range(0, len(b_line), 16):
+                chunk = bytes(b_line[ii:ii + 16])
+                if not chunk in chunks:
+                    chunks[chunk] = 1
+                else:
+                    chunks[chunk] += 1
+            for count in chunks.values():
+                if count > 1:
+                    # we've found a repeat
+                    found = True
+                    if verbose:
+                        print("found repeating 16 byte pattern on line %d." % line_number)
+                        for chunk, count in chunks.items():
+                            print("count = %d for chunk" % count, chunk)
+            line_number += 1
+    assert found == True
     return
 
 
